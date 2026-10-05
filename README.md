@@ -1,6 +1,6 @@
 # SparkRec
 
-Movie recommendation pipelines built with PySpark. The implementation covers ingestion and **M2 offline recommendations**: temporal evaluation, popularity baselines, explicit ALS, unseen-movie retrieval, fallbacks, and coverage reports. The roadmap is in [project.md](project.md). **FastAPI and a Next.js/TypeScript frontend** are planned for M3.
+Movie recommendation pipelines built with PySpark. The implementation covers ingestion and **M2 offline recommendations**: temporal evaluation, popularity baselines, explicit ALS, unseen-movie retrieval, fallbacks, and coverage reports. **FastAPI and a Next.js/TypeScript frontend** are planned for M3.
 
 ## Run with Docker
 
