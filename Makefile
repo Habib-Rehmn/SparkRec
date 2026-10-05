@@ -1,4 +1,4 @@
-.PHONY: help setup build test test-unit lint smoke download ingest fixture demo-small
+.PHONY: help setup build test test-unit lint smoke download ingest fixture demo-small train
 
 export SPARKREC_UID ?= $(shell id -u)
 export SPARKREC_GID ?= $(shell id -g)
@@ -12,7 +12,7 @@ help:
 	@echo "fixture     Ingest the bundled synthetic dataset"
 	@echo "download    Download/cache and verify MovieLens small"
 	@echo "ingest      Validate MovieLens small and write Parquet"
-	@echo "demo-small  Download then ingest MovieLens small (M1 data demo)"
+	@echo "demo-small  Download, ingest, train and evaluate MovieLens small"
 
 setup:
 	mkdir -p data artifacts
@@ -42,5 +42,9 @@ ingest:
 fixture:
 	$(COMPOSE) run --rm pipeline ingest --config configs/fixture.yaml
 
+train:
+	@test -n "$(INPUT_RUN)" || (echo "Set INPUT_RUN=artifacts/ingestion/<run>"; exit 1)
+	$(COMPOSE) run --rm pipeline train --config configs/dev.yaml --input-run "$(INPUT_RUN)"
+
 demo-small: download
-	$(MAKE) ingest
+	$(COMPOSE) run --rm pipeline demo-small --config configs/dev.yaml

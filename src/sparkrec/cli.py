@@ -18,13 +18,17 @@ def main(argv: list[str] | None = None) -> int:
         ("validate-config", "Validate and print resolved configuration"),
         ("download", "Download and verify a MovieLens dataset"),
         ("ingest", "Validate CSV data and write a versioned Parquet run"),
+        ("train", "Train and evaluate baselines and ALS on temporal folds"),
+        ("demo-small", "Ingest cached MovieLens data, then train and evaluate"),
         ("smoke", "Check the Java/Spark runtime with a tiny ALS fit"),
     ):
         sub = subparsers.add_parser(name, help=help_text)
         sub.add_argument("--config", type=Path, default=Path("configs/dev.yaml"))
         if name == "download":
             sub.add_argument("--archive", type=Path, help="Use an already-downloaded MovieLens ZIP")
-        if name == "ingest":
+        if name == "train":
+            sub.add_argument("--input-run", type=Path, required=True)
+        if name in {"ingest", "train", "demo-small"}:
             sub.add_argument(
                 "--run-id", help="Unique output name (existing runs are never overwritten)"
             )
@@ -46,6 +50,17 @@ def main(argv: list[str] | None = None) -> int:
                     from sparkrec.ingestion.pipeline import ingest
 
                     run_dir = ingest(config, spark, args.run_id)
+                    print(json.dumps({"status": "complete", "run_dir": str(run_dir)}))
+                elif args.command in {"train", "demo-small"}:
+                    from sparkrec.offline.pipeline import train
+
+                    if args.command == "demo-small":
+                        from sparkrec.ingestion.pipeline import ingest
+
+                        input_run = ingest(config, spark, args.run_id)
+                    else:
+                        input_run = args.input_run
+                    run_dir = train(config, spark, input_run, args.run_id)
                     print(json.dumps({"status": "complete", "run_dir": str(run_dir)}))
                 else:
                     from pyspark.ml.recommendation import ALS

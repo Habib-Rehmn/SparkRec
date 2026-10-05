@@ -11,3 +11,18 @@ spark:
   log_level: WARN
 quality:
   max_rejected_fraction: 0.0
+# M2: frozen temporal protocol and a bounded validation-only ALS search.
+offline:
+  output_dir: ../artifacts/offline
+  min_user_ratings: 5
+  min_movie_ratings: 5
+  ranks: [20]
+  reg_params: [0.1]
+  max_iter: 10
+  seed: 42
+  prior_weight: 10
+  relevance_threshold: 4.0
+  stored_k: 50
+  initial_candidates: 200
+  max_candidates: 2000
+  audit_users: 5

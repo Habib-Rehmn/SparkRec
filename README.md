@@ -1,6 +1,6 @@
 # SparkRec
 
-Movie recommendation pipelines built with PySpark. The current milestone implements **M1: configuration, dataset acquisition, quality validation, and Parquet ingestion**. The roadmap is in [project.md](project.md); recommendation training, evaluation, API, and dashboard follow in later milestones.
+Movie recommendation pipelines built with PySpark. The implementation covers ingestion and **M2 offline recommendations**: temporal evaluation, popularity baselines, explicit ALS, unseen-movie retrieval, fallbacks, and coverage reports. The roadmap is in [project.md](project.md). **FastAPI and a Next.js/TypeScript frontend** are planned for M3.
 
 ## Run with Docker
 
@@ -13,7 +13,7 @@ make fixture
 make demo-small
 ```
 
-`make test` builds a test stage that runs lint, unit tests, Spark integration tests, and a tiny ALS save/load check. Docker may reuse a successful cached test layer when its inputs have not changed. `make demo-small` is the M1 data demo: it downloads MovieLens small, validates it, and writes Parquet. It does not yet generate movie recommendations.
+`make test` builds a test stage that runs lint, unit tests, Spark integration tests, and a tiny ALS save/load check. Docker may reuse a successful cached test layer when its inputs have not changed. `make demo-small` downloads MovieLens small, validates it, then trains and evaluates baselines and ALS on temporal folds. Models, recommendations, and reports are saved under `artifacts/offline/`. This is an offline demo; the web interface follows in M3.
 
 Builds use a pinned Python 3.11 image, Java 17, Spark 4.0.1, and a frozen Python dependency lock. Downloads happen explicitly at runtime. The development container runs as your user when invoked through Make, so generated host files retain usable ownership.
 
@@ -41,6 +41,24 @@ docker compose run --rm pipeline ingest --config configs/dev.yaml --run-id first
 MovieLens inputs and their original README/license are stored under `data/raw/ml-latest-small/`. A ZIP checksum and per-file checksums are recorded in `dataset.json`; cached data is verified on reuse and before ingestion. The development configuration pins `dataset.archive_sha256` to the verified small-dataset release; use this field to enforce a particular archive. A changed or corrupt cache fails instead of being silently replaced. To intentionally acquire a different dataset snapshot, use a new input directory and update the timestamp/checksum configuration.
 
 The development configuration uses a September 2018 snapshot cutoff matching the currently targeted small release. A changed upstream dataset may need a new cutoff; future timestamps are not silently accepted.
+
+## Offline training and evaluation
+
+Reuse a completed ingestion run without downloading or ingesting again:
+
+```bash
+make build
+make train INPUT_RUN=artifacts/ingestion/movielens-small
+# Or choose a unique offline run name:
+docker compose run --rm pipeline train --config configs/dev.yaml \
+  --input-run artifacts/ingestion/movielens-small --run-id first-model
+```
+
+The `offline` configuration controls filtering, ALS candidates, retrieval, and output paths. Optional `validation_start` and `test_start` are UTC Unix-second cutoffs; otherwise the pipeline selects approximately 80/10/10 temporal folds and saves the exact boundaries. Validation selects the configuration before the train-plus-validation refit and held-out test evaluation.
+
+Each offline run contains `manifest.json`, `selection.json`, `report.json`, `report.md`, saved `folds/`, and separate `validation/` and `test/` artifacts. Each stage includes filtered training data, baseline scores, relevance labels, model directories, recommendation Parquet, and per-model reports. Recommendations are checked for seen items, duplicates, valid ranks, catalog membership, and finite scores before the run completes. Failed runs remain marked failed.
+
+See [measured M2 results](docs/verification-m2.md) and [the evaluation protocol](docs/evaluation.md) for metric formulas, cohort definitions, cold-start coverage, approximation limits, and the distinction between an evaluation model and the M3 serving model.
 
 ## Outputs and quality rules
 
