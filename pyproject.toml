@@ -1,0 +1,61 @@
+[build-system]
+requires = ["hatchling==1.27.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "sparkrec"
+version = "0.1.0"
+description = "Reproducible movie recommendation pipelines with PySpark"
+readme = "README.md"
+requires-python = ">=3.11,<3.13"
+dependencies = [
+    "pyspark[ml]==4.0.1",
+    "pydantic==2.12.3",
+    "PyYAML==6.0.3",
+]
+
+[project.scripts]
+sparkrec = "sparkrec.cli:main"
+
+[dependency-groups]
+dev = ["pytest==8.4.2", "ruff==0.14.3"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/sparkrec"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["spark: requires Java 17+ and local socket access"]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+# Upstream PyPI metadata avoids downloading the 434 MB source archive just to resolve.
+# Refresh this version-specific block whenever the PySpark pin changes.
+# Source: https://pypi.org/pypi/pyspark/4.0.1/json
+[[tool.uv.dependency-metadata]]
+name = "pyspark"
+version = "4.0.1"
+requires-python = ">=3.9"
+requires-dist = [
+    "py4j==0.10.9.9",
+    "numpy>=1.21; extra == \"ml\"",
+    "numpy>=1.21; extra == \"mllib\"",
+    "pandas>=2.0.0; extra == \"sql\"",
+    "pyarrow>=11.0.0; extra == \"sql\"",
+    "numpy>=1.21; extra == \"sql\"",
+    "pandas>=2.0.0; extra == \"pandas-on-spark\"",
+    "pyarrow>=11.0.0; extra == \"pandas-on-spark\"",
+    "numpy>=1.21; extra == \"pandas-on-spark\"",
+    "pandas>=2.0.0; extra == \"connect\"",
+    "pyarrow>=11.0.0; extra == \"connect\"",
+    "grpcio>=1.67.0; extra == \"connect\"",
+    "grpcio-status>=1.67.0; extra == \"connect\"",
+    "googleapis-common-protos>=1.65.0; extra == \"connect\"",
+    "numpy>=1.21; extra == \"connect\"",
+]
+provides-extra = ["ml", "mllib", "sql", "pandas-on-spark", "connect"]

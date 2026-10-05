@@ -1,0 +1,19 @@
+name: sparkrec
+services:
+  pipeline:
+    image: sparkrec:dev
+    build:
+      context: .
+      dockerfile: docker/spark.Dockerfile
+      target: development
+    init: true
+    user: "${SPARKREC_UID:-1000}:${SPARKREC_GID:-1000}"
+    cpus: ${SPARKREC_CPUS:-2}
+    mem_limit: ${SPARKREC_MEMORY:-4g}
+    environment:
+      SPARK_LOCAL_IP: 127.0.0.1
+    volumes:
+      - ./data:/app/data
+      - ./artifacts:/app/artifacts
+      - ./configs:/app/configs:ro
+    command: ["--help"]

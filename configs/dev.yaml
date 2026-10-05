@@ -1,0 +1,13 @@
+dataset:
+  name: ml-latest-small
+  archive_sha256: 696d65a3dfceac7c45750ad32df2c259311949efec81f0f144fdfb91ebc9e436
+  input_dir: ../data/raw/ml-latest-small
+  snapshot_time: '2018-09-27T00:00:00+00:00'
+output_dir: ../artifacts/ingestion
+spark:
+  master: local[2]
+  driver_memory: 1g
+  shuffle_partitions: 4
+  log_level: WARN
+quality:
+  max_rejected_fraction: 0.0

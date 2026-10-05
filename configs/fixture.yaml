@@ -1,0 +1,12 @@
+dataset:
+  name: fixture
+  input_dir: ../tests/fixtures/movielens
+  snapshot_time: '2020-01-01T00:00:00+00:00'
+output_dir: ../artifacts/fixture
+spark:
+  master: local[2]
+  driver_memory: 1g
+  shuffle_partitions: 2
+  log_level: ERROR
+quality:
+  max_rejected_fraction: 0.5
